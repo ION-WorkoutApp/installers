@@ -10,7 +10,7 @@ def generate_random_string(length=32, characters=None):
         characters = string.ascii_letters + string.digits + "!@#$%^&*()_+-="
     return ''.join(random.choice(characters) for _ in range(length))
 
-def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, debugging, email_user, email_pass, domain):
+def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, debugging, email_user, email_pass, email_smtp_host, email_smtp_port):
     repo_url = "https://github.com/ION-WorkoutApp/server.git"
     try:
         subprocess.run(["git", "clone", repo_url], check=True)
@@ -31,10 +31,10 @@ def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, d
             env_file.write(f"MONGO_INITDB_ROOT_PASSWORD={mongo_password}\n")
             env_file.write(f"MONGO_DATABASE={mongo_database}\n")
             env_file.write(f"DEBUGGING={str(debugging).lower()}\n")
-            if email_user and email_pass and domain:
-                env_file.write(f"EMAIL_USER={email_user}\n")
-                env_file.write(f"EMAIL_PASS={email_pass}\n")
-                env_file.write(f"DOMAIN={domain}\n")
+            env_file.write(f"EMAIL_USER={email_user}\n")
+            env_file.write(f"EMAIL_PASS={email_pass}\n")
+            env_file.write(f"EMAIL_SMTP_HOST={email_smtp_host}\n")
+            env_file.write(f"EMAIL_SMTP_PORT={email_smtp_port}\n")
     except Exception as e:
         messagebox.showerror("Error", f"Error writing .env file: {e}")
         return
@@ -48,9 +48,11 @@ def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, d
     messagebox.showinfo("Success", "Server setup completed successfully!")
 
 class PlaceholderEntry(ttk.Entry):
-    def __init__(self, master=None, placeholder="", *args, **kwargs):
+    def __init__(self, master=None, placeholder="", show=None, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.placeholder = placeholder
+        self.show_character = show  # For password masking
+        self.default_show = self.cget("show")
         self.default_fg_color = self.cget("foreground")
         self.placeholder_fg_color_light = "gray"
         self.placeholder_fg_color_dark = "lightgray"
@@ -64,15 +66,19 @@ class PlaceholderEntry(ttk.Entry):
         self.insert(0, self.placeholder)
         current_theme = ttk.Style().theme_use()
         if current_theme == "dark":
-            self.config(foreground=self.placeholder_fg_color_dark)
+            self.config(foreground=self.placeholder_fg_color_dark, show="")
         else:
-            self.config(foreground=self.placeholder_fg_color_light)
+            self.config(foreground=self.placeholder_fg_color_light, show="")
         self.has_placeholder = True
 
     def remove_placeholder(self):
         if self.has_placeholder:
             self.delete(0, tk.END)
             self.config(foreground=self.default_fg_color)
+            if self.show_character:
+                self.config(show=self.show_character)
+            else:
+                self.config(show=self.default_show)
             self.has_placeholder = False
 
     def foc_in(self, *args):
@@ -135,6 +141,31 @@ class ScrollableFrame(ttk.Frame):
 
 def open_gui():
     def on_submit():
+        # Validate required fields
+        required_fields = [
+            ("Port", port_var.get().strip()),
+            ("Secret Key", secret_key_var.get().strip()),
+            ("MongoDB User", mongo_user_var.get().strip()),
+            ("MongoDB Password", mongo_password_var.get().strip()),
+            ("MongoDB Database", mongo_database_var.get().strip()),
+            ("Email User", email_user_var.get().strip()),
+            ("Email Password", email_pass_var.get().strip()),
+            ("SMTP Host", email_smtp_host_var.get().strip()),
+            ("SMTP Port", email_smtp_port_var.get().strip())
+        ]
+
+        for field_name, value in required_fields:
+            if not value:
+                messagebox.showerror("Error", f"{field_name} cannot be empty.")
+                return
+
+        # Optionally generate secrets if empty
+        if not secret_key_var.get().strip():
+            secret_key_var.set(generate_random_string())
+
+        if not mongo_password_var.get().strip():
+            mongo_password_var.set(generate_random_string())
+
         setup_server(
             port_var.get().strip(),
             secret_key_var.get().strip(),
@@ -144,7 +175,8 @@ def open_gui():
             debugging_var.get(),
             email_user_var.get().strip(),
             email_pass_var.get().strip(),
-            domain_var.get().strip()
+            email_smtp_host_var.get().strip(),
+            email_smtp_port_var.get().strip()
         )
 
     def toggle_theme():
@@ -157,7 +189,7 @@ def open_gui():
 
     root = tk.Tk()
     root.title("Server Setup")
-    root.geometry("600x700")
+    root.geometry("600x800")
     root.resizable(True, True)  # Allow resizing to enable scrollbar
 
     # Initialize styles
@@ -171,6 +203,17 @@ def open_gui():
         },
         "TLabel": {
             "configure": {"background": "#f0f0f0", "foreground": "#000000"}
+        },
+        "TLabelframe": {
+            "configure": {"background": "#f0f0f0", "foreground": "#000000"}
+        },
+        "TLabelframe.Label": {
+            "configure": {
+                "background": "#f0f0f0",
+                "foreground": "#FF8C00",
+                "font": ("Arial", 12, "bold"),
+                "anchor": "center"
+            }
         },
         "TEntry": {
             "configure": {"fieldbackground": "#ffffff", "foreground": "#000000", "insertcolor": "#000000"}
@@ -193,6 +236,17 @@ def open_gui():
         },
         "TLabel": {
             "configure": {"background": "#2E2E2E", "foreground": "#E0E0E0"}
+        },
+        "TLabelframe": {
+            "configure": {"background": "#2E2E2E", "foreground": "#E0E0E0"}
+        },
+        "TLabelframe.Label": {
+            "configure": {
+                "background": "#2E2E2E",
+                "foreground": "#FFA500",
+                "font": ("Arial", 14, "bold"),
+                "anchor": "center"
+            }
         },
         "TEntry": {
             "configure": {"fieldbackground": "#3C3F41", "foreground": "#E0E0E0", "insertcolor": "#E0E0E0"}
@@ -223,15 +277,16 @@ def open_gui():
     header_label.pack(pady=10, padx=10)
 
     # Variables
-    port_var = tk.StringVar()
-    secret_key_var = tk.StringVar()
-    mongo_user_var = tk.StringVar()
-    mongo_password_var = tk.StringVar()
-    mongo_database_var = tk.StringVar()
-    debugging_var = tk.IntVar(value=1)
-    email_user_var = tk.StringVar()
-    email_pass_var = tk.StringVar()
-    domain_var = tk.StringVar()
+    port_var = tk.StringVar(value="1221")
+    secret_key_var = tk.StringVar(value="yourSecret")
+    mongo_user_var = tk.StringVar(value="yourUser")
+    mongo_password_var = tk.StringVar(value="yourPassword")
+    mongo_database_var = tk.StringVar(value="maindb")
+    debugging_var = tk.IntVar(value=0)
+    email_user_var = tk.StringVar(value="main@ion606.com")
+    email_pass_var = tk.StringVar(value="3f297u7k979w7y3l")
+    email_smtp_host_var = tk.StringVar(value="smtp.fastmail.com")
+    email_smtp_port_var = tk.StringVar(value="465")
 
     # Theme Toggle Checkbox
     dark_theme_var = tk.BooleanVar(value=True)
@@ -244,7 +299,7 @@ def open_gui():
         ("Secret Key", secret_key_var, "yourSecret"),
         ("MongoDB User", mongo_user_var, "yourUser"),
         ("MongoDB Password", mongo_password_var, "yourPassword"),
-        ("MongoDB Database", mongo_database_var, "userDatabase"),
+        ("MongoDB Database", mongo_database_var, "maindb"),
     ]
 
     for label_text, var, placeholder in fields:
@@ -252,37 +307,48 @@ def open_gui():
         frame.pack(fill="x", pady=5, padx=10)
         label = ttk.Label(frame, text=label_text)
         label.pack(anchor="w", padx=5)
-        entry = PlaceholderEntry(frame, placeholder=placeholder, textvariable=var)
+        if "Password" in label_text:
+            entry = PlaceholderEntry(frame, placeholder=placeholder, textvariable=var, show='*')
+        else:
+            entry = PlaceholderEntry(frame, placeholder=placeholder, textvariable=var)
         entry.pack(fill="x", padx=5, pady=2)
 
-    # Email Settings Header
-    email_label = ttk.Label(container.scrollable_frame, text="Email Settings (Optional)", font=("Arial", 12, "bold"), style="Orange.TLabel")
-    email_label.pack(pady=10, padx=10)
+    # Create Email Settings Label
+    email_title = ttk.Label(container.scrollable_frame, text="Email Settings", font=("Arial", 14, "bold"))
+    email_title.pack(pady=(50, 0))  # Add spacing to separate from previous section
+
+    # Email Settings Frame (Without Title)
+    email_frame = ttk.LabelFrame(container.scrollable_frame, padding=(0, 0))
+    email_frame.pack(fill="x", pady=0, padx=10)
 
     # Email Disclaimer
     email_disclaimer = ttk.Label(
-        container.scrollable_frame,
-        text="DISCLAIMER: If you do not do this now you will have to set it up manually later to use any email services",
+        email_frame,
+        text="DISCLAIMER: You must configure email settings to use email services.",
         font=("Arial", 9, "bold"),
         style="Orange.TLabel",  # Using the Orange.TLabel style
         wraplength=560,
         justify="center"
     )
-    email_disclaimer.pack(pady=10, padx=10)
+    email_disclaimer.pack(pady=0, padx=10)
 
     # Email Fields
     email_fields = [
-        ("Email User", email_user_var, "example@example.com"),
-        ("Email Password", email_pass_var, "examplepass"),
-        ("Domain", domain_var, "exampledomain"),
+        ("Email User", email_user_var, "main@ion606.com"),
+        ("Email Password", email_pass_var, "3f297u7k979w7y3l"),
+        ("SMTP Host", email_smtp_host_var, "smtp.fastmail.com"),
+        ("SMTP Port", email_smtp_port_var, "465"),
     ]
 
     for label_text, var, placeholder in email_fields:
-        frame = ttk.Frame(container.scrollable_frame)
+        frame = ttk.Frame(email_frame)
         frame.pack(fill="x", pady=5, padx=10)
         label = ttk.Label(frame, text=label_text, style="Orange.TLabel")
         label.pack(anchor="w", padx=5)
-        entry = PlaceholderEntry(frame, placeholder=placeholder, textvariable=var)
+        if "Password" in label_text:
+            entry = PlaceholderEntry(frame, placeholder=placeholder, textvariable=var, show='*')
+        else:
+            entry = PlaceholderEntry(frame, placeholder=placeholder, textvariable=var)
         entry.pack(fill="x", padx=5, pady=2)
 
     # Debugging Checkbutton

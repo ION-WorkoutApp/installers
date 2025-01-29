@@ -64,13 +64,13 @@ echo -e "${CYAN}Enter the PORT [default: 1221]:${NC}"
 read -p "> " PORT
 PORT=${PORT:-1221}
 
-echo -e "${CYAN}Enter the MongoDB Database [default: userDatabase]:${NC}"
+echo -e "${CYAN}Enter the MongoDB Database [default: maindb]:${NC}"
 read -p "> " MONGO_DATABASE
-MONGO_DATABASE=${MONGO_DATABASE:-userDatabase}
+MONGO_DATABASE=${MONGO_DATABASE:-maindb}
 
-echo -e "${CYAN}Enable debugging? (true/false) [default: true]:${NC}"
+echo -e "${CYAN}Enable debugging? (true/false) [default: false]:${NC}"
 read -p "> " DEBUGGING
-DEBUGGING=${DEBUGGING:-true}
+DEBUGGING=${DEBUGGING:-false}
 
 # Prompt for email settings
 echo -e "${CYAN}Do you want to configure email settings? Answering no will require you to set it up manually later (yes/no) [default: yes]:${NC}"
@@ -78,17 +78,21 @@ read -p "> " CONFIGURE_EMAIL
 CONFIGURE_EMAIL=${CONFIGURE_EMAIL:-yes}
 
 if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
-    echo -e "${MAGENTA}Enter the Email User (e.g., example@example.com) [default: none]:${NC}"
+    echo -e "${MAGENTA}Enter the Email User (e.g., main@ion606.com):${NC}"
     read -p "> " EMAIL_USER
-    EMAIL_USER=${EMAIL_USER:-}
+    EMAIL_USER=${EMAIL_USER:-main@ion606.com}
 
-    echo -e "${MAGENTA}Enter the Email Password [default: none]:${NC}"
+    echo -e "${MAGENTA}Enter the Email Password:${NC}"
     read -p "> " EMAIL_PASS
-    EMAIL_PASS=${EMAIL_PASS:-}
+    EMAIL_PASS=${EMAIL_PASS:-3f297u7k979w7y3l}
 
-    echo -e "${MAGENTA}Enter the Domain [default: exampledomain]:${NC}"
-    read -p "> " DOMAIN
-    DOMAIN=${DOMAIN:-exampledomain}
+    echo -e "${MAGENTA}Enter the SMTP Host [default: smtp.fastmail.com]:${NC}"
+    read -p "> " EMAIL_SMTP_HOST
+    EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-smtp.fastmail.com}
+
+    echo -e "${MAGENTA}Enter the SMTP Port [default: 465]:${NC}"
+    read -p "> " EMAIL_SMTP_PORT
+    EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}
 fi
 
 # Clone the repository
@@ -116,7 +120,8 @@ echo -e "${BLUE}Creating .env file at $ENV_PATH...${NC}"
     if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
         echo "EMAIL_USER=$EMAIL_USER"
         echo "EMAIL_PASS=$EMAIL_PASS"
-        echo "DOMAIN=$DOMAIN"
+        echo "EMAIL_SMTP_HOST=$EMAIL_SMTP_HOST"
+        echo "EMAIL_SMTP_PORT=$EMAIL_SMTP_PORT"
     fi
 } > "$ENV_PATH"
 
