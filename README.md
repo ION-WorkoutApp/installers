@@ -50,7 +50,7 @@ bash <(curl -s https://raw.githubusercontent.com/ION-WorkoutApp/installers/main/
 
 The GUI installer provides a user-friendly interface for setting up the ION Workout App server.
 
-Simply download and run [the setup file](GUI/server_setup)
+Simply download and run [the setup file](GUI/dist/server_setup)
 
 ---
 
@@ -82,15 +82,9 @@ The GUI installer can be packaged into a standalone executable using **PyInstall
    ```bash
    pyinstaller --onefile --noconsole server_setup.py
    ```
+   The executable will be created in the `dist` folder
 
-5. **Find the executable**:
-   The executable will be available in the `dist` folder:
-   ```bash
-   ls dist/  # For Linux/macOS
-   dir dist  # For Windows
-   ```
-
-6. **Deactivate the virtual environment** (optional):
+5. **Deactivate the virtual environment** (optional):
    ```bash
    deactivate
    ```

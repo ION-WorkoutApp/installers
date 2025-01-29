@@ -6,6 +6,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No color
 
 # Set the default repository URL
@@ -30,7 +31,6 @@ uri_encode() {
 }
 
 generate_secret() {
-    # Generates a mix of alphanumeric characters and special characters compatible with MongoDB
     tr -dc 'a-zA-Z0-9!@#$%^&*()_+-=' < /dev/urandom | head -c "$1"
 }
 
@@ -40,45 +40,56 @@ read -p "> " AUTO_GENERATE
 AUTO_GENERATE=${AUTO_GENERATE:-yes}
 
 if [[ "$AUTO_GENERATE" =~ ^(yes|y|Y)$ ]]; then
-    # Generate random credentials
     MONGO_PASSWORD=$(generate_secret 32)
     SECRET_KEY=$(generate_secret 32)
     echo -e "${YELLOW}Generated credentials:${NC}"
     echo -e "${GREEN}MongoDB Password:${NC} $MONGO_PASSWORD"
     echo -e "${GREEN}Secret Key:${NC} $SECRET_KEY"
 else
-    # Prompt the user for manual input
     echo -e "${CYAN}Enter the MongoDB Password:${NC}"
     read -p "> " MONGO_PASSWORD
-    if [[ -z "$MONGO_PASSWORD" ]]; then
-        echo -e "${RED}Error: MongoDB Password cannot be empty.${NC}"
-        exit 1
-    fi
+    [[ -z "$MONGO_PASSWORD" ]] && { echo -e "${RED}Error: MongoDB Password cannot be empty.${NC}"; exit 1; }
 
     echo -e "${CYAN}Enter the Secret Key:${NC}"
     read -p "> " SECRET_KEY
-    if [[ -z "$SECRET_KEY" ]]; then
-        echo -e "${RED}Error: Secret Key cannot be empty.${NC}"
-        exit 1
-    fi
+    [[ -z "$SECRET_KEY" ]] && { echo -e "${RED}Error: Secret Key cannot be empty.${NC}"; exit 1; }
 fi
 
-# Prompt the user for other inputs
-echo -e "${CYAN}Enter the MongoDB Username [default: workoutadmin]:${NC}"
+# Prompt for database settings
+echo -e "${CYAN}Enter the MongoDB Username [default: yourUser]:${NC}"
 read -p "> " MONGO_USER
-MONGO_USER=${MONGO_USER:-workoutadmin}
+MONGO_USER=${MONGO_USER:-yourUser}
 
 echo -e "${CYAN}Enter the PORT [default: 1221]:${NC}"
 read -p "> " PORT
 PORT=${PORT:-1221}
 
-echo -e "${CYAN}Enter the MongoDB Database [default: maindb]:${NC}"
+echo -e "${CYAN}Enter the MongoDB Database [default: userDatabase]:${NC}"
 read -p "> " MONGO_DATABASE
-MONGO_DATABASE=${MONGO_DATABASE:-maindb}
+MONGO_DATABASE=${MONGO_DATABASE:-userDatabase}
 
 echo -e "${CYAN}Enable debugging? (true/false) [default: true]:${NC}"
 read -p "> " DEBUGGING
 DEBUGGING=${DEBUGGING:-true}
+
+# Prompt for email settings
+echo -e "${CYAN}Do you want to configure email settings? Answering no will require you to set it up manually later (yes/no) [default: yes]:${NC}"
+read -p "> " CONFIGURE_EMAIL
+CONFIGURE_EMAIL=${CONFIGURE_EMAIL:-yes}
+
+if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
+    echo -e "${MAGENTA}Enter the Email User (e.g., example@example.com) [default: none]:${NC}"
+    read -p "> " EMAIL_USER
+    EMAIL_USER=${EMAIL_USER:-}
+
+    echo -e "${MAGENTA}Enter the Email Password [default: none]:${NC}"
+    read -p "> " EMAIL_PASS
+    EMAIL_PASS=${EMAIL_PASS:-}
+
+    echo -e "${MAGENTA}Enter the Domain [default: exampledomain]:${NC}"
+    read -p "> " DOMAIN
+    DOMAIN=${DOMAIN:-exampledomain}
+fi
 
 # Clone the repository
 echo -e "${BLUE}Cloning the repository...${NC}"
@@ -102,6 +113,11 @@ echo -e "${BLUE}Creating .env file at $ENV_PATH...${NC}"
     echo "MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD"
     echo "MONGO_DATABASE=$MONGO_DATABASE"
     echo "DEBUGGING=$DEBUGGING"
+    if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
+        echo "EMAIL_USER=$EMAIL_USER"
+        echo "EMAIL_PASS=$EMAIL_PASS"
+        echo "DOMAIN=$DOMAIN"
+    fi
 } > "$ENV_PATH"
 
 if [[ $? -eq 0 ]]; then
