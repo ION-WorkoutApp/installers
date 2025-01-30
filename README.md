@@ -23,6 +23,7 @@ Ensure the following software is installed:
 - **Git**
 - **Docker & Docker Compose**
 - **Python 3.x**
+- **Cloudflared (optional)**
 
 For the GUI installer, the Python dependencies will be installed automatically.
 
