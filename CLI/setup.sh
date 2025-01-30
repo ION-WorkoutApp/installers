@@ -78,13 +78,17 @@ read -p "> " CONFIGURE_EMAIL
 CONFIGURE_EMAIL=${CONFIGURE_EMAIL:-yes}
 
 if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
-    echo -e "${MAGENTA}Enter the Email User (e.g., main@ion606.com):${NC}"
+    echo -e "${MAGENTA}Enter the Email Address to send emails from (e.g., donotreply@ion606.com):${NC}"
+    read -p "> " EMAIL_SENDER
+    [[ -z "$EMAIL_SENDER" ]] && { echo -e "${RED}Error: Email Sender cannot be empty.${NC}"; exit 1; }
+    
+    echo -e "${MAGENTA}Enter the Email User (e.g., main@ion606.com). You use this to log into the provider:${NC}"
     read -p "> " EMAIL_USER
-    EMAIL_USER=${EMAIL_USER:-main@ion606.com}
+    [[ -z "$EMAIL_USER" ]] && { echo -e "${RED}Error: Email User cannot be empty.${NC}"; exit 1; }
 
     echo -e "${MAGENTA}Enter the Email Password:${NC}"
     read -p "> " EMAIL_PASS
-    EMAIL_PASS=${EMAIL_PASS:-3f297u7k979w7y3l}
+    [[ -z "$EMAIL_PASS" ]] && { echo -e "${RED}Error: Email Password cannot be empty.${NC}"; exit 1; }
 
     echo -e "${MAGENTA}Enter the SMTP Host [default: smtp.fastmail.com]:${NC}"
     read -p "> " EMAIL_SMTP_HOST
@@ -118,6 +122,7 @@ echo -e "${BLUE}Creating .env file at $ENV_PATH...${NC}"
     echo "MONGO_DATABASE=$MONGO_DATABASE"
     echo "DEBUGGING=$DEBUGGING"
     if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
+        echo "EMAIL_SENDER=$EMAIL_SENDER"
         echo "EMAIL_USER=$EMAIL_USER"
         echo "EMAIL_PASS=$EMAIL_PASS"
         echo "EMAIL_SMTP_HOST=$EMAIL_SMTP_HOST"
