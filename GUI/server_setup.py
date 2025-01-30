@@ -10,7 +10,7 @@ def generate_random_string(length=32, characters=None):
         characters = string.ascii_letters + string.digits + "!@#$%^&*()_+-="
     return ''.join(random.choice(characters) for _ in range(length))
 
-def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, debugging, email_user, email_pass, email_smtp_host, email_smtp_port):
+def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, debugging, email_sender, email_user, email_pass, email_smtp_host, email_smtp_port):
     repo_url = "https://github.com/ION-WorkoutApp/server.git"
     try:
         subprocess.run(["git", "clone", repo_url], check=True)
@@ -31,6 +31,7 @@ def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, d
             env_file.write(f"MONGO_INITDB_ROOT_PASSWORD={mongo_password}\n")
             env_file.write(f"MONGO_DATABASE={mongo_database}\n")
             env_file.write(f"DEBUGGING={str(debugging).lower()}\n")
+            env_file.write(f"EMAIL_SENDER={email_sender}\n")
             env_file.write(f"EMAIL_USER={email_user}\n")
             env_file.write(f"EMAIL_PASS={email_pass}\n")
             env_file.write(f"EMAIL_SMTP_HOST={email_smtp_host}\n")
@@ -149,6 +150,7 @@ def open_gui():
             ("MongoDB Password", mongo_password_var.get().strip()),
             ("MongoDB Database", mongo_database_var.get().strip()),
             ("Email User", email_user_var.get().strip()),
+            ("Email Sender", email_user_var.get().strip()),
             ("Email Password", email_pass_var.get().strip()),
             ("SMTP Host", email_smtp_host_var.get().strip()),
             ("SMTP Port", email_smtp_port_var.get().strip())
@@ -173,6 +175,7 @@ def open_gui():
             mongo_password_var.get().strip(),
             mongo_database_var.get().strip(),
             debugging_var.get(),
+            email_sender_var.get().strip(),
             email_user_var.get().strip(),
             email_pass_var.get().strip(),
             email_smtp_host_var.get().strip(),
@@ -283,8 +286,9 @@ def open_gui():
     mongo_password_var = tk.StringVar(value="yourPassword")
     mongo_database_var = tk.StringVar(value="maindb")
     debugging_var = tk.IntVar(value=0)
+    email_sender_var = tk.StringVar(value="donotreply@ion606.com")
     email_user_var = tk.StringVar(value="main@ion606.com")
-    email_pass_var = tk.StringVar(value="3f297u7k979w7y3l")
+    email_pass_var = tk.StringVar(value="emailpassword")
     email_smtp_host_var = tk.StringVar(value="smtp.fastmail.com")
     email_smtp_port_var = tk.StringVar(value="465")
 
@@ -334,8 +338,9 @@ def open_gui():
 
     # Email Fields
     email_fields = [
+        ("Email Sender", email_sender_var, "donotreply@ion606.com"),
         ("Email User", email_user_var, "main@ion606.com"),
-        ("Email Password", email_pass_var, "3f297u7k979w7y3l"),
+        ("Email Password", email_pass_var, "????????"),
         ("SMTP Host", email_smtp_host_var, "smtp.fastmail.com"),
         ("SMTP Port", email_smtp_port_var, "465"),
     ]
