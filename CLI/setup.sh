@@ -11,6 +11,8 @@ NC='\033[0m' # No color
 
 # Set the default repository URL
 REPO_URL="https://github.com/ION-WorkoutApp/server.git"
+PORTAL_URL="https://github.com/ION-WorkoutApp/admin-portal.git"
+SITE_URL="https://workoutapp.ion606.com"
 
 # Function to generate random secrets and encode them
 uri_encode() {
@@ -21,10 +23,10 @@ uri_encode() {
         case "$char" in
             [a-zA-Z0-9._~-]) # Safe characters
                 encoded+="$char"
-                ;;
+            ;;
             *) # Encode all other characters
                 encoded+="$(printf '%%%02X' "'$char")"
-                ;;
+            ;;
         esac
     done
     echo "$encoded"
@@ -49,13 +51,17 @@ else
     echo -e "${CYAN}Enter the MongoDB Password:${NC}"
     read -p "> " MONGO_PASSWORD
     [[ -z "$MONGO_PASSWORD" ]] && { echo -e "${RED}Error: MongoDB Password cannot be empty.${NC}"; exit 1; }
-
+    
     echo -e "${CYAN}Enter the Secret Key:${NC}"
     read -p "> " SECRET_KEY
     [[ -z "$SECRET_KEY" ]] && { echo -e "${RED}Error: Secret Key cannot be empty.${NC}"; exit 1; }
 fi
 
 # Prompt for database settings
+echo -e "${CYAN}Enter the site URL [default: $SITE_URL]:${NC}"
+read -p "> " SITE_URL
+SITE_URL=${SITE_URL:-$SITE_URL}
+
 echo -e "${CYAN}Enter the MongoDB Username [default: yourUser]:${NC}"
 read -p "> " MONGO_USER
 MONGO_USER=${MONGO_USER:-yourUser}
@@ -85,15 +91,15 @@ if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
     echo -e "${MAGENTA}Enter the Email User (e.g., main@ion606.com). You use this to log into the provider:${NC}"
     read -p "> " EMAIL_USER
     [[ -z "$EMAIL_USER" ]] && { echo -e "${RED}Error: Email User cannot be empty.${NC}"; exit 1; }
-
+    
     echo -e "${MAGENTA}Enter the Email Password:${NC}"
     read -p "> " EMAIL_PASS
     [[ -z "$EMAIL_PASS" ]] && { echo -e "${RED}Error: Email Password cannot be empty.${NC}"; exit 1; }
-
+    
     echo -e "${MAGENTA}Enter the SMTP Host [default: smtp.fastmail.com]:${NC}"
     read -p "> " EMAIL_SMTP_HOST
     EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-smtp.fastmail.com}
-
+    
     echo -e "${MAGENTA}Enter the SMTP Port [default: 465]:${NC}"
     read -p "> " EMAIL_SMTP_PORT
     EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}
@@ -136,6 +142,22 @@ else
     echo -e "${RED}Error: Failed to write the .env file.${NC}"
     exit 1
 fi
+
+echo -e "${BLUE}Cloning admin portal repository...${NC}"
+if git clone "$PORTAL_URL"; then
+    REPO_NAME=$(basename "$PORTAL_URL" .git)
+    echo -e "${GREEN}Repository cloned into $REPO_NAME.${NC}"
+    cd "../$REPO_NAME" || { echo -e "${RED}Error: Failed to enter directory $REPO_NAME.${NC}"; exit 1; }
+else
+    echo -e "${RED}Error: Failed to clone the repository.${NC}"
+    exit 1
+fi
+
+
+echo -e "${BLUE}Creating secondary .env file${NC}"
+echo -e "API_BASE_URL=$SITE_URL\n" > ".env"
+
+cd ..
 
 # Pull Docker images
 echo -e "${BLUE}Pulling Docker images...${NC}"
