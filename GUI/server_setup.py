@@ -32,7 +32,10 @@ def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, d
 			env_file.write(f"MONGO_INITDB_ROOT_USERNAME={mongo_user}\n")
 			env_file.write(f"MONGO_INITDB_ROOT_PASSWORD={mongo_password}\n")
 			env_file.write(f"MONGO_DATABASE={mongo_database}\n")
-			env_file.write(f"DEBUGGING={str(debugging).lower()}\n")
+   
+			if debugging:
+				env_file.write(f"DEBUGGING={str(debugging).lower()}\n")
+    
 			env_file.write(f"EMAIL_SENDER={email_sender}\n")
 			env_file.write(f"EMAIL_USER={email_user}\n")
 			env_file.write(f"EMAIL_PASS={email_pass}\n")
@@ -189,7 +192,7 @@ def open_gui():
 			mongo_user_var.get().strip(),
 			mongo_password_var.get().strip(),
 			mongo_database_var.get().strip(),
-			debugging_var.get(),
+			debugging_var.get() != 0,
 			email_sender_var.get().strip(),
 			email_user_var.get().strip(),
 			email_pass_var.get().strip(),

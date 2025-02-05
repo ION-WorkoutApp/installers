@@ -126,7 +126,11 @@ echo -e "${BLUE}Creating .env file at $ENV_PATH...${NC}"
     echo "MONGO_INITDB_ROOT_USERNAME=$MONGO_USER"
     echo "MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD"
     echo "MONGO_DATABASE=$MONGO_DATABASE"
-    echo "DEBUGGING=$DEBUGGING"
+	
+	if [[ "$DEBUGGING" == "true" ]]; then
+		echo "DEBUGGING=$DEBUGGING"
+	fi
+
     if [[ "$CONFIGURE_EMAIL" =~ ^(yes|y|Y)$ ]]; then
         echo "EMAIL_SENDER=$EMAIL_SENDER"
         echo "EMAIL_USER=$EMAIL_USER"
