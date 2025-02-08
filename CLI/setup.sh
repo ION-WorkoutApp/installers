@@ -33,7 +33,7 @@ uri_encode() {
 }
 
 generate_secret() {
-    tr -dc 'a-zA-Z0-9!@#$%^&*()_+-=' < /dev/urandom | head -c "$1"
+    tr -dc 'a-zA-Z0-9!@$^&*_+-=' < /dev/urandom | head -c "$1"
 }
 
 # Ask the user whether to generate credentials automatically
