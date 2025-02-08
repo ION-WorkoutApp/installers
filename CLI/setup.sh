@@ -147,21 +147,34 @@ else
     exit 1
 fi
 
+# default settings
+cat << 'EOF' > settings.env
+DEBUGGING=true
+ALLOW_SIGNUPS=true
+REQUIRE_EMAIL_VERIFICATION=true
+MIN_PASSWORD_REQ=true
+ALLOW_SOCIAL_LOGINS=true
+LOGIN_LIMIT=5
+ENABLE_MONETIZATION=false
+EOF
+
+cd ..
+
 echo -e "${BLUE}Cloning admin portal repository...${NC}"
 if git clone "$PORTAL_URL"; then
-    REPO_NAME=$(basename "$PORTAL_URL" .git)
-    echo -e "${GREEN}Repository cloned into $REPO_NAME.${NC}"
-    cd "../$REPO_NAME" || { echo -e "${RED}Error: Failed to enter directory $REPO_NAME.${NC}"; exit 1; }
+    REPO_NAME2=$(basename "$PORTAL_URL" .git)
+    echo -e "${GREEN}Repository cloned into $REPO_NAME2.${NC}"
+    cd "$REPO_NAME2" || { echo -e "${RED}Error: Failed to enter directory $REPO_NAME2.${NC}"; exit 1; }
 else
     echo -e "${RED}Error: Failed to clone the repository.${NC}"
     exit 1
 fi
 
 
-echo -e "${BLUE}Creating secondary .env file${NC}"
+echo -e "${BLUE}Creating secondary .env file at $(pwd)${NC}"
 echo -e "API_BASE_URL=$SITE_URL\n" > ".env"
 
-cd ..
+cd ../server
 
 # Pull Docker images
 echo -e "${BLUE}Pulling Docker images...${NC}"
