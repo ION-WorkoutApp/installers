@@ -48,14 +48,13 @@ def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, d
 	try:
 		subprocess.run(["git", "clone", portal_url], check=True)
 		repo_name = repo_url.split("/")[-1].replace(".git", "")
-  
-		env_path = os.path.join(repo_name, ".env")
-		with open(env_path, "w") as env_file:
-			env_file.write(f"API_BASE_URL={site_url}\n")
-   
 	except subprocess.CalledProcessError:
 		messagebox.showerror("Error", "Failed to set up admin portal")
 		return
+
+	env_path = os.path.join(repo_name, ".env")
+	with open(env_path, "w") as env_file:
+		env_file.write(f"API_BASE_URL={site_url}\n")
 
 	try:
 		subprocess.run(["docker", "compose", "pull"], cwd=repo_name, check=True)
