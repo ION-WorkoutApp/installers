@@ -7,7 +7,7 @@ import string
 
 def generate_random_string(length=32, characters=None):
 	if characters is None:
-		characters = string.ascii_letters + string.digits + "!@#$%^&*()_+-="
+		characters = string.ascii_letters + string.digits + "!@$^&*_+-="
 	return ''.join(random.choice(characters) for _ in range(length))
 
 def setup_server(port, secret_key, mongo_user, mongo_password, mongo_database, debugging, email_sender, email_user, email_pass, email_smtp_host, email_smtp_port, site_url):
