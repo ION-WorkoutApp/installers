@@ -38,7 +38,7 @@ The CLI installer is a Bash script that guides you through the setup process via
 Run this single command to execute the CLI installer:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/ION-WorkoutApp/installers/main/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/ION-WorkoutApp/installers/refs/heads/main/CLI/setup.sh)
 ```
 
 ### What It Does
