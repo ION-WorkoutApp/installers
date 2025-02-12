@@ -172,7 +172,7 @@ fi
 
 
 echo -e "${BLUE}Creating secondary .env file at $(pwd)${NC}"
-echo -e "API_BASE_URL=$SITE_URL\n" > ".env"
+echo -e "REACT_APP_API_BASE_URL=$SITE_URL\n" > ".env"
 
 cd ../server
 
